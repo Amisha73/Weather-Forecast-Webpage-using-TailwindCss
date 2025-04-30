@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Forecast Webpage</title>
+    <link rel="stylesheet" href="output.css" />
+    <!-- CDN for icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <body class="bg-sky-400">
+      <!-- Main container for the weather application -->
+      <div class="flex items-center justify-center h-screen">
+        <div
+          class="bg-gradient-to-r from-blue-600 to-cyan-500 p-5 rounded-lg w-auto shadow-lg"
+        >
+          <!-- Input section for city name and buttons -->
+          <div class="m-3 flex justify-center items-center gap-4">
+            <input
+              type="text"
+              id="cityName"
+              placeholder="Enter your city name"
+              class="p-2 rounded-full bg-white border-none text-lg text-gray-900 font-semibold transition-all duration-300 focus:outline-none focus:shadow-outline"
+            />
+            <button
+              id="btn"
+              class="bg-white text-black text-lg font-medium p-2 rounded border-b-2 border-r-2 border-black transition duration-300 hover:bg-black hover:text-white"
+            >
+              Check
+            </button>
+            <!-- location icon -->
+            <button
+              id="currentLocationBtn"
+              class="bg-white text-black text-lg p-2 rounded border-b-2 border-r-2 border-black transition duration-300 hover:bg-black hover:text-white"
+            >
+              <i class="fas fa-map-marker-alt"></i>
+            </button>
+          </div>
+          <!-- recently searched -->
+          <p class="mt-5 ml-3 mb-[-18px]">Recently Searched:</p>
+          <select
+            id="recentCities"
+            class="mt-5 ml-3 mb-5 p-2 w-11/12 rounded border-none bg-white text-black font-medium transition-all duration-300 focus:outline-none focus:shadow-outline"
+            style="display: none"
+          ></select>
+          <!-- container for showing result in it -->
+          <div class="container"></div>
+        </div>
+      </div>
+
+      <!-- JavaScript for weather application functionality -->
+      <script>
+        // DOM elements
+        let btn = document.getElementById("btn");
+        let currentLocationBtn = document.getElementById("currentLocationBtn");
+        let container = document.querySelector(".container");
+        let recentCitiesDropdown = document.getElementById("recentCities");
+
+        // Load recent cities from local storage on page load
+        loadRecentCities();
+
+        // Event listener for the "Check" button
+        btn.addEventListener("click", () => {
+          let cityName = document.getElementById("cityName").value.trim();
+          if (cityName.length <= 0) {
+            showError("Please Enter City Name");
+            return;
+          }
+          fetchWeatherData(cityName);
+        });
+
+        // Event listener for the "Current Location" button
+        currentLocationBtn.addEventListener("click", () => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                let lat = position.coords.latitude;
+                let lon = position.coords.longitude;
+                fetchWeatherDataByLocation(lat, lon);
+              },
+              () => {
+                showError("Unable to retrieve your location.");
+              }
+            );
+          } else {
+            showError("Geolocation is not supported by this browser.");
+          }
+        });
+
+        // Event listener for the recent cities dropdown
+        recentCitiesDropdown.addEventListener("change", (event) => {
+          let selectedCity = event.target.value;
+          if (selectedCity) {
+            fetchWeatherData(selectedCity);
+          }
+        });
+
+        // Function to fetch weather data based on city name
+        function fetchWeatherData(cityName) {
+          // API key for OpenWeatherMap 
+          let apiKey = "a5667f98d71a05fedcdf4cd7a639139a";
+          let api = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`;
+        //   fetching an api
+          fetch(api)
+            .then((resp) => {
+              if (!resp.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return resp.json();
+            })
+            .then((data) => {
+              showData(data);
+              saveRecentCity(cityName);
+            })
+            .catch(() => {
+              showError("Please Enter Correct City Name");
+            });
+        }
+
+        // Function to fetch weather data based on geolocation
+        function fetchWeatherDataByLocation(lat, lon) {
+          // API key for OpenWeatherMap 
+          let apiKey = "a5667f98d71a05fedcdf4cd7a639139a";
+          let api = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+        //   fetching an api
+          fetch(api)
+            .then((resp) => {
+              if (!resp.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return resp.json();
+            })
+            .then((data) => {
+              showData(data);
+              saveRecentCity(data.name);
+            })
+            .catch(() => {
+              showError(" Unable to fetch weather data for your location.");
+            });
+        }
+
+        // time function
+        function updateTime() {
+          const now = new Date();
+          let hours = now.getHours();
+          let minutes = now.getMinutes();
+          let seconds = now.getSeconds();
+
+          // Add leading zeros if needed
+          hours = String(hours).padStart(2, "0");
+          minutes = String(minutes).padStart(2, "0");
+          seconds = String(seconds).padStart(2, "0");
+
+          const timeString = `${hours}:${minutes}:${seconds}`;
+          document.getElementById("current-time").textContent = timeString;
+        }
+
+        // Update the time every second
+        setInterval(updateTime, 1000);
+
+        // Initial call to display time when the page loads
+        updateTime();
+
+        // Function to display weather data on the page
+        function showData(data) {
+          const WeatherImages = {
+            Clear: "Sun.jpeg",
+            Clouds: "Clouds.jpg",
+            Haze: "Haze.jpeg",
+            Rain: "Rain.jpg",
+            Snow: "Snow.jpg",
+          };
+
+          let weatherCondition = data.weather[0].main;
+          let imageFile = WeatherImages[weatherCondition];
+        //   html code result
+          container.innerHTML = `
+                    <div class="weatherContainer flex flex-col items-center mt-4 text-white">
+                        <img src="../images/${imageFile}" alt="Weather Icon" id="img" class="w-20 h-20 object-cover" />
+                        <div id="weatherName" class="text-2xl mt-2">
+                            ${Math.floor(data.main.temp - 273.15)}°C, ${data.weather[0].main}
+                            <div id="time-container">
+                                <span id="current-time" class="text-2xl text-amber-500 font-semibold"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cityName text-center text-white font-bold text-4xl mt-5">
+                        ${data.name}
+                    </div>
+                    <div class="otherInfo flex justify-between mt-7 w-full">
+                        <div class="horiCenter flex items-center gap-2 text-white text-xl">
+                            <i class="fas fa-water"></i>
+                            <div class="text flex flex-col items-center">
+                                <p>${data.main.humidity}%</p>
+                                <p>Humidity</p>
+                            </div>
+                        </div>
+                        <div class="horiCenter flex items-center gap-2 text-white text-xl">
+                            <i class="fas fa-cloud"></i>
+                            <div class="text flex flex-col items-center">
+                                <p>${data.wind.speed} km/h</p>
+                                <p>Wind Speed</p>
+                            </div>
+                        </div>
+                        <div class="horiCenter flex items-center gap-2 text-white text-xl">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${data.sys.country}</span>
+                        </div>
+                    </div>`;
+        }
+
+        // Function to display error messages
+        function showError(message) {
+          container.innerHTML = `<h1 class='error text-red-700 font-medium'>${message}</h1>`;
+          setTimeout(() => {
+            container.innerHTML = "";
+          }, 1000);
+        }
+
+        // Function to save recently searched cities to local storage
+        function saveRecentCity(cityName) {
+          let recentCities =
+            JSON.parse(localStorage.getItem("recentCities")) || [];
+          if (!recentCities.includes(cityName)) {
+            recentCities.push(cityName);
+            localStorage.setItem("recentCities", JSON.stringify(recentCities));
+            loadRecentCities();
+          }
+        }
+
+        // Function to load recent cities from local storage and populate the dropdown
+        function loadRecentCities() {
+          let recentCities =
+            JSON.parse(localStorage.getItem("recentCities")) || [];
+          recentCitiesDropdown.innerHTML = "";
+          if (recentCities.length > 0) {
+            recentCitiesDropdown.style.display = "block";
+            recentCities.forEach((city) => {
+              let option = document.createElement("option");
+              option.value = city;
+              option.textContent = city;
+              recentCitiesDropdown.appendChild(option);
+            });
+          } else {
+            recentCitiesDropdown.style.display = "none";
+          }
+        }
+      </script>
+    </body>
+  </body>
+</html>
