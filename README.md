@@ -19,6 +19,23 @@ This project is a simple weather forecast webpage that allows users to check the
 - **OpenWeatherMap API**: Used to fetch weather data.
 - **Fontawesome CDN**: Use for icons.
 
+## Tailwind CSS Installation Guide
+
+This guide provides step-by-step instructions for installing and setting up Tailwind CSS in your project.
+
+# 1. Install Tailwind CSS and CLI 
+Use npm to install both `tailwindcss` and `@tailwindcss/cli`:  npm install tailwindcss @tailwindcss/cli
+
+# 2. Import Tailwind in your CSS 
+Import to your main CSS file:  @import "tailwindcss";.
+
+# 3. Start the Tailwind CLI build process
+Run the CLI tool to scan your source files for classes and build your CSS:  npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch
+
+# 4. Start using Tailwind in your HTML
+Add your compiled CSS file to the <head> and start using Tailwind’s utility classes to style your content:  <link href="./output.css" rel="stylesheet">
+
+
 ## How to Use
 
 1. **Enter City Name**: Type the name of the city in the input field and click the "Check" button.
