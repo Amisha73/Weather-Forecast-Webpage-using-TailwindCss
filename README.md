@@ -33,7 +33,7 @@ Import to your main CSS file:  `@import "tailwindcss";`.
 Run the CLI tool to scan your source files for classes and build your CSS:  `npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch`
 
 ### 4. Start using Tailwind in your HTML
-Add your compiled CSS file to the <head> and start using Tailwind’s utility classes to style your content:  <link href="./output.css" rel="stylesheet">
+Add your compiled CSS file to the <head> and start using Tailwind’s utility classes to style your content:  `<link href="./output.css" rel="stylesheet">`
 
 
 ## How to Use
